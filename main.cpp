@@ -3,17 +3,13 @@
 #include <cstdio>
 #include <ctime>
 #include <conio.h>
-
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <windows.h>
 #endif
 
-class Console
-{
+class Console {
 public:
-    // Kody klawiszy sterujących kursorem i klawiszy specjalnych
-    enum KEY_CODES
-    {
+    enum KEY_CODES {
 #ifdef __BORLANDC__
         KEY_BLANK = 0x0000,
 #elif (defined(__GNUC__) && defined(__MINGW32__)) || defined(_MSC_VER)
@@ -25,6 +21,7 @@ public:
         KEY_RIGHT = 0x4d00,
         KEY_ESC = 0x001b
     };
+
     static int getKey();
     static void clearScreen();
     static void writeCharXY(int x, int y, char c);
@@ -35,29 +32,27 @@ public:
     static void cursorOn();
 };
 
-class GameObject
-{
+class GameObject {
 public:
     GameObject(int x = 0, int y = 0, int shape = ' ', int power = 0)
-            : x(x), y(y), shape(shape), isVisible(false), power(power)
-    {
+            : x(x), y(y), shape(shape), isVisible(false), power(power) {
     }
-    virtual void show()
-    {
+
+    virtual void show() {
         Console::writeCharXY(x, y, shape);
         isVisible = true;
     }
-    virtual void hide()
-    {
+
+    virtual void hide() {
         Console::writeCharXY(x, y, ' ');
         isVisible = false;
     }
-    bool hasTheSamePositionAs(const GameObject & otherObject)
-    {
+
+    bool hasTheSamePositionAs(const GameObject & otherObject) {
         return (x == otherObject.x and y == otherObject.y);
     }
-    virtual void update()
-    {
+
+    virtual void update() {
     }
 
     int x;
@@ -68,124 +63,116 @@ public:
 };
 
 
-class TimedObject : public GameObject
-{
+class TimedObject : public GameObject {
+
 public:
     TimedObject(int x = 0, int y = 0, int shape = ' ', int power = 0, long sleepTime = 1000)
-            : GameObject(x, y, shape, power), sleepTime(sleepTime), active(false), lastActivationTime(0)
-    {
+            : GameObject(x, y, shape, power), sleepTime(sleepTime), active(false), lastActivationTime(0) {
     }
-    void show()
-    {
+
+    void show() {
         GameObject::show();
         activate();
     }
-    void activate()
-    {
+
+    void activate() {
         active = true;
         updateLastActivationTime();
     }
-    void deactivation()
-    {
+
+    void deactivation() {
         hide();
         active = false;
     }
-    bool isActive()
-    {
+
+    bool isActive() {
         return active;
     }
 
-    bool activationTimeEllapsed()
-    {
-
+    bool activationTimeEllapsed() {
         long t = time(0);
         return t - lastActivationTime > sleepTime;
     }
 
-    void update()
-    {
-        if(isActive())
-        {
+    void update() {
+        if(isActive()) {
             if(activationTimeEllapsed())
                 deactivation();
         }
     }
+
 private:
-    void updateLastActivationTime()
-    {
+    void updateLastActivationTime() {
         lastActivationTime = time(0);
     }
-    long int lastActivationTime;
 
+    long int lastActivationTime;
     long sleepTime;
     bool active;
 };
 
-class MovingPoint : public GameObject
-{
+class MovingPoint : public GameObject {
+
 public:
-    MovingPoint() : GameObject()
-    {
+    MovingPoint() : GameObject() {
     }
-    MovingPoint(int x, int y, int shape, int power) : GameObject(x, y, shape, power)
-    {
+
+    MovingPoint(int x, int y, int shape, int power) : GameObject(x, y, shape, power) {
     }
-    void moveUp()
-    {
+
+    void moveUp() {
         hide();
-        if(y > 1)
-            --y;
+        if(y > 1) --y;
         show();
     }
-    void moveDown()
-    {
+
+    void moveDown() {
         hide();
-        if(y < 24)
-            ++y;
+        if(y < 24) ++y;
         show();
     }
-    void moveLeft()
-    {
+
+    void moveLeft() {
         hide();
-        if(x > 1)
-            --x;
+        if(x > 1) --x;
         show();
     }
-    void moveRight()
-    {
+
+    void moveRight() {
         hide();
-        if(x < 80)
-            ++x;
+        if(x < 80) ++x;
         show();
     }
 };
 
-class Player : public MovingPoint
-{
+class Player : public MovingPoint {
+
 public:
-    Player() : MovingPoint(), health(100)
-    {
+    Player() : MovingPoint(), health(100) {
     }
-    Player(int x, int y, int shape) : MovingPoint(x, y, shape, 0), health(100)
-    {
+
+    Player(int x, int y, int shape) : MovingPoint(x, y, shape, 0), health(100) {
     }
+
     int health;
 };
 
-class Maze
-{
+class Maze {
+
 public:
-    enum MAZE_PARAMS
-    {
+    enum MAZE_PARAMS {
         NUM_OF_ROWS = 5,
         NUM_OF_COLS = 10
     };
+
     void show();
     bool isWallOnXY(int x, int y);
+
 private:
     static char walls[NUM_OF_ROWS][NUM_OF_COLS + 1];
     bool validPosition(int x, int y);
 };
+
 char Maze::walls[NUM_OF_ROWS][NUM_OF_COLS + 1] =
         {
                 "##########",
@@ -194,20 +181,20 @@ char Maze::walls[NUM_OF_ROWS][NUM_OF_COLS + 1] =
                 "#    ## ##",
                 "## #######",
         };
-void Maze::show()
-{
+
+void Maze::show() {
     for(int row = 0; row < NUM_OF_ROWS; ++row)
         Console::writeStrXY(1, row + 1, walls[row]);
 }
-bool Maze::isWallOnXY(int x, int y)
-{
+
+bool Maze::isWallOnXY(int x, int y) {
     if(validPosition(x, y))
         return walls[y - 1][x - 1] == '#';
     else
         return false;
 }
-bool Maze::validPosition(int x, int y)
-{
+
+bool Maze::validPosition(int x, int y) {
     if(!(x > 0 && x <= NUM_OF_COLS))
         return false;
     if(!(y > 0 && y <= NUM_OF_ROWS))
@@ -216,12 +203,12 @@ bool Maze::validPosition(int x, int y)
 }
 
 const int NUM_OF_BOMBS = 6;
-class TheGame
-{
+
+class TheGame {
+
 public:
 
-    TheGame() : player(10, 12, '*'), maze(), dinner(6, 2, '%', 10)
-    {
+    TheGame() : player(10, 12, '*'), maze(), dinner(6, 2, '%', 10) {
         Console::cursorOff();
         Console::writeStrXY(15, 12, "Nacisnij dowony klawisz by rozpoczac gre");
         Console::getKey();
@@ -233,13 +220,13 @@ public:
         gameObjects[4] = new TimedObject(12, 15, 'M', -5, 3);
         gameObjects[5] = new TimedObject(14, 15, 'H', -100, 5);
     }
-    void showBombs()
-    {
+
+    void showBombs() {
         for(int i = 0; i < NUM_OF_BOMBS; ++i)
             gameObjects[i]->show();
     }
-    ~TheGame()
-    {
+
+    ~TheGame() {
         Console::clearScreen();
         Console::writeStrXY(15, 12, "Nacisnij dowony klawisz by zakonczyc gre");
         Console::getKey();
@@ -248,22 +235,18 @@ public:
             delete gameObjects[i];
     }
 
-    void run()
-    {
+    void run() {
         int key;
         maze.show();
         player.show();
         showBombs();
         dinner.show();
-        do
-        {
+        do {
             if(!kbhit())
                 backgroundProcess();
-            else
-            {
+            else {
                 key = Console::getKey();
-                if(!keyboardPreProcessed(key))
-                {
+                if(!keyboardPreProcessed(key)) {
                     processKeyboard(key);
                     postProcessKeyboard(key);
                 }
@@ -274,27 +257,23 @@ public:
 
 private:
 
-    void postProcessKeyboard(int key)
-    {
+    void postProcessKeyboard(int key) {
         for(int i = 0; i < NUM_OF_BOMBS; ++i)
             if(gameObjects[i]->isVisible)
-                if(player.hasTheSamePositionAs(*gameObjects[i]))
-                {
+                if(player.hasTheSamePositionAs(*gameObjects[i])) {
                     player.health += gameObjects[i]->power;
                     gameObjects[i]->hide();
                     player.show();
                 }
 
         if(dinner.isVisible)
-            if(player.x == dinner.x && player.y == dinner.y)
-            {
+            if(player.x == dinner.x && player.y == dinner.y) {
                 player.health += dinner.power;
                 dinner.hide();
                 player.show();
             }
     }
-    void backgroundProcess()
-    {
+    void backgroundProcess() {
         char strBuffer[80];
         sprintf(strBuffer, "Pozycja %2d %2d Sily zyciowe: %3d", player.x, player.y, player.health);
         Console::writeStrXY(2, 25, strBuffer);
@@ -302,32 +281,31 @@ private:
         updateObjects();
     }
 
-    void updateObjects()
-    {
+    void updateObjects() {
         for(int i = 0; i < NUM_OF_BOMBS; ++i)
             gameObjects[i]->update();
     }
-    void showClock()
-    {
+
+    void showClock() {
         time_t t;
         time(&t);
+
         // Pierwszy sposób
         //Console::writeStrXY(30, 25, ctime(&t));
+
         // Drugi sposób
         tm * timeInfo = localtime(&t);
         char buffer[80];
         sprintf(buffer, "%02d:%02d:%02d", timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
         Console::writeStrXY(70, 25, buffer);
     }
-    void processKeyboard(int key)
-    {
+
+    void processKeyboard(int key) {
         movePoint(key);
     }
 
-    void movePoint(int key)
-    {
-        switch(key)
-        {
+    void movePoint(int key) {
+        switch(key) {
             case Console::KEY_UP:
                 player.moveUp();
                 break;
@@ -343,13 +321,11 @@ private:
         }
     }
 
-    bool keyboardPreProcessed(int key)
-    {
+    bool keyboardPreProcessed(int key) {
         int newX = player.x;
         int newY = player.y;
 
-        switch(key)
-        {
+        switch(key) {
             case Console::KEY_UP:
                 --newY;
                 break;
@@ -365,21 +341,20 @@ private:
         }
         return maze.isWallOnXY(newX, newY);
     }
+
     Player player;
     Maze maze;
     GameObject * gameObjects[NUM_OF_BOMBS];
     GameObject dinner;
 };
 
-int main()
-{
+int main() {
     TheGame game;
     game.run();
 
     return EXIT_SUCCESS;
 }
 
-//https://pastebin.com/x0EQtVGg
 
 // Funkcje obsługi konsoli, sprawa techniczna, w sensie merytorycznym nieistotna
 int Console::getKey()
